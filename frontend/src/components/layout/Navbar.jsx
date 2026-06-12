@@ -28,7 +28,7 @@ const creatorLinks = [
 ];
 
 const businessLinks = [
-  { to: '/dashboard',    label: 'Dashboard',      icon: LayoutDashboard },
+  { to: '/business-dashboard', label: 'Dashboard',      icon: LayoutDashboard },
   { to: '/campaigns/create', label: 'Post Campaign',  icon: Plus },
   { to: '/creators',     label: 'Find Creators',  icon: Users },
 ];
@@ -94,7 +94,7 @@ const Navbar = () => {
           {isAuthenticated && (
             <nav className="hidden md:flex items-center gap-6">
               {navLinks.map(({ to, label, icon: Icon }) => (
-                <NavLink key={to} to={to} end={to === '/dashboard'} className={linkClass}>
+                <NavLink key={to} to={to} end={to === '/dashboard' || to === '/business-dashboard'} className={linkClass}>
                   <Icon className="h-4 w-4" />
                   {label}
                 </NavLink>
@@ -154,7 +154,7 @@ const Navbar = () => {
                       </div>
 
                       <button
-                        onClick={() => { setDropdownOpen(false); navigate(user?.role === 'creator' ? '/my-profile' : '/business-profile'); }}  
+                        onClick={() => { setDropdownOpen(false); navigate(user?.role === 'creator' ? '/my-profile' : '/business-dashboard'); }}  
                         className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
                         <User className="h-4 w-4" /> Profile

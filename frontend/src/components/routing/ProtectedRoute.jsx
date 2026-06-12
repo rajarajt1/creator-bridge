@@ -6,6 +6,7 @@ import { PageLoader } from '../ui/Loader.jsx';
 const ROLE_DASHBOARD = {
   creator:  '/dashboard',
   business: '/business-dashboard',
+  admin:    '/admin-dashboard',
 };
 
 /**

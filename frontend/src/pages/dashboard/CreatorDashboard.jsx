@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   Send, CheckCircle, Clock, TrendingUp,
   ArrowRight, Plus, Eye, BarChart2,
@@ -63,7 +64,7 @@ const CreatorDashboard = () => {
   const user = useAuthStore((s) => s.user);
   const { myApplications, fetchMyApplications, isLoading: appsLoading } = useApplicationStore();
   const { campaigns, fetchCampaigns, isLoading: campaignsLoading } = useCampaignStore();
-  const { profile, fetchMyProfile } = useCreatorStore();
+  const { profile, fetchMyProfile, updateProfile } = useCreatorStore();
 
   useEffect(() => {
     fetchMyApplications();
@@ -123,12 +124,40 @@ const CreatorDashboard = () => {
               />
             </div>
             {pct < 100 && (
-              <Link to="/profile" className="text-xs text-amber-300 hover:underline mt-1 block">
+              <Link to="/my-profile" className="text-xs text-amber-300 hover:underline mt-1 block">
                 Complete profile →
               </Link>
             )}
           </div>
         </div>
+        
+        {/* ── Publish Warning Banner ──────────────────────────────────── */}
+        {profile && !profile.isPublished && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-3">
+              <span className="text-2xl mt-0.5">⚠️</span>
+              <div>
+                <h4 className="font-semibold text-amber-900 text-sm">Your profile is currently in Draft mode</h4>
+                <p className="text-xs text-amber-700 mt-0.5">Brands cannot discover you in search. Publish your profile to start receiving collaboration requests!</p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              className="shrink-0 bg-amber-600 hover:bg-amber-700 border-transparent text-white"
+              onClick={async () => {
+                try {
+                  await updateProfile({ isPublished: true });
+                  toast.success('Your profile is now live! 🎉');
+                } catch {
+                  toast.error('Failed to publish profile');
+                }
+              }}
+            >
+              Publish Now
+            </Button>
+          </div>
+        )}
 
         {/* ── Stats grid ─────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -144,7 +173,7 @@ const CreatorDashboard = () => {
           <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="font-semibold text-gray-900">Recent Applications</h2>
-              <Link to="/applications" className="text-xs text-indigo-600 hover:underline flex items-center gap-0.5">
+              <Link to="/my-applications" className="text-xs text-indigo-600 hover:underline flex items-center gap-0.5">
                 View all <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
@@ -187,9 +216,9 @@ const CreatorDashboard = () => {
               <h2 className="font-semibold text-gray-900 mb-3">Quick Actions</h2>
               <div className="space-y-2">
                 {[
-                  { label: 'Browse Campaigns',   to: '/campaigns',    icon: BarChart2 },
-                  { label: 'My Applications',    to: '/applications', icon: Send      },
-                  { label: 'Edit Profile',        to: '/profile',      icon: TrendingUp},
+                  { label: 'Browse Campaigns',   to: '/campaigns',       icon: BarChart2 },
+                  { label: 'My Applications',    to: '/my-applications', icon: Send      },
+                  { label: 'Edit Profile',        to: '/my-profile',      icon: TrendingUp},
                 ].map(({ label, to, icon: Icon }) => (
                   <Link key={to} to={to}
                     className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 transition-colors text-sm font-medium text-gray-700"

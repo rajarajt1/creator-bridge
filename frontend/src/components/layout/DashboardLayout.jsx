@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 import Navbar from './Navbar.jsx';
 import Sidebar from './Sidebar.jsx';
 
-const DashboardLayout = () => {
+const DashboardLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -47,7 +47,7 @@ const DashboardLayout = () => {
           </div>
 
           <div className="px-4 sm:px-6 lg:px-8 py-6">
-            <Outlet />
+            {children || <Outlet />}
           </div>
         </main>
       </div>

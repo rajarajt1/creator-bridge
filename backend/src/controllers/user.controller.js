@@ -49,3 +49,27 @@ export const deleteUser = async (req, res, next) => {
     next(error);
   }
 };
+
+export const choosePlan = async (req, res, next) => {
+  try {
+    const { plan } = req.body;
+    const ALLOWED_PLANS = ['free', 'pro', 'elite', 'growth', 'enterprise'];
+    if (!plan || !ALLOWED_PLANS.includes(plan)) {
+      return res.status(400).json({ success: false, message: 'Invalid subscription plan' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { subscriptionPlan: plan },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({ success: true, message: `Subscribed to ${plan} successfully`, user });
+  } catch (error) {
+    next(error);
+  }
+};

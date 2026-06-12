@@ -13,14 +13,14 @@ import useChatStore from '../../store/chatStore.js';
 
 const CREATOR_LINKS = [
   { to: '/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
-  { to: '/profile',      label: 'My Profile',      icon: User },
+  { to: '/my-profile',   label: 'My Profile',      icon: User },
   { to: '/campaigns',    label: 'Find Campaigns',  icon: Search },
-  { to: '/applications', label: 'My Applications', icon: FileText },
+  { to: '/my-applications', label: 'My Applications', icon: FileText },
   { to: '/messages',     label: 'Messages',        icon: MessageSquare },
 ];
 
 const BUSINESS_LINKS = [
-  { to: '/dashboard',    label: 'Dashboard',       icon: LayoutDashboard },
+  { to: '/business-dashboard', label: 'Dashboard',    icon: LayoutDashboard },
   { to: '/my-campaigns', label: 'My Campaigns',    icon: Briefcase },
   { to: '/creators',     label: 'Find Creators',   icon: Users },
   { to: '/messages',     label: 'Messages',        icon: MessageSquare },
@@ -38,7 +38,7 @@ const Sidebar = () => {
           <NavLink
             key={to}
             to={to}
-            end={to === '/dashboard'}
+            end={to === '/dashboard' || to === '/business-dashboard'}
             className={({ isActive }) =>
               [
                 'flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',

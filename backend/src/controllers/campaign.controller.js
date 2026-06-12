@@ -71,15 +71,26 @@ export const getCampaigns = catchAsync(async (req, res) => {
     Campaign.countDocuments(query),
     Campaign.find(query)
       .populate('businessId', 'name avatar isVerified')
-      .populate({
-        path: 'businessId',
-        populate: { path: 'businessProfile', model: 'BusinessProfile', select: 'businessName logo' },
-      })
       .sort({ [sortField]: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean(),
   ]);
+
+  // Attach business profile name/logo in a single batch query
+  const bizIds = [...new Set(campaigns.map((c) => c.businessId?._id).filter(Boolean))];
+  if (bizIds.length) {
+    const profiles = await BusinessProfile.find(
+      { userId: { $in: bizIds } },
+      'userId businessName logo'
+    ).lean();
+    const profileMap = new Map(profiles.map((p) => [p.userId.toString(), p]));
+    campaigns.forEach((c) => {
+      if (c.businessId?._id) {
+        c.businessId.businessProfile = profileMap.get(c.businessId._id.toString()) ?? null;
+      }
+    });
+  }
 
   return res.json({
     success: true,

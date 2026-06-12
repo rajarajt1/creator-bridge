@@ -14,7 +14,7 @@ const STATUS_VARIANT = {
   withdrawn: 'warning',
 };
 
-const ApplicationCard = ({ application, onUpdateStatus }) => {
+const ApplicationCard = ({ application, onUpdateStatus, onViewReports }) => {
   if (!application) return null;
 
   const creator = application.creatorId ?? {};
@@ -107,6 +107,18 @@ const ApplicationCard = ({ application, onUpdateStatus }) => {
           >
             View Profile
           </Link>
+          {application.status === 'accepted' && (
+            <>
+              <span className="text-gray-300">·</span>
+              <button
+                type="button"
+                onClick={() => onViewReports?.(application.campaignId?._id ?? application.campaignId)}
+                className="text-xs text-indigo-600 hover:underline font-medium"
+              >
+                View Reports
+              </button>
+            </>
+          )}
           <span className="text-gray-300">·</span>
           <span className="text-xs text-gray-400">{formatRelativeTime(application.createdAt)}</span>
         </div>

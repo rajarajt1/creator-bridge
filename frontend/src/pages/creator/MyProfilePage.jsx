@@ -10,7 +10,7 @@ import Button from '../../components/ui/Button.jsx';
 import Modal from '../../components/ui/Modal.jsx';
 import SocialMediaStats from '../../components/creator/SocialMediaStats.jsx';
 import { PageLoader } from '../../components/ui/Loader.jsx';
-import { formatCurrency } from '../../utils/helpers.js';
+import { formatCurrency, formatNumber } from '../../utils/helpers.js';
 
 // ─── Profile completeness ─────────────────────────────────────────────────────
 
@@ -77,6 +77,8 @@ const MyProfilePage = () => {
   } = useCreatorStore();
 
   const [showPortfolioModal, setShowPortfolioModal] = useState(false);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [showMetricsModal, setShowMetricsModal] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
@@ -89,6 +91,11 @@ const MyProfilePage = () => {
   const socialMedia = profile?.socialMedia ?? {};
   const portfolio   = profile?.portfolio ?? [];
   const pricing     = profile?.pricing ?? {};
+  const packages    = profile?.packages ?? [];
+  const monthlyViews = profile?.monthlyViews ?? 0;
+  const monthlyUploads = profile?.monthlyUploads ?? 0;
+  const avgReelViews = profile?.avgReelViews ?? 0;
+  const audienceDetails = profile?.audienceDetails ?? '';
   const pct         = completeness(profile);
 
   const handleAddPortfolio = async (item) => {
@@ -112,6 +119,35 @@ const MyProfilePage = () => {
     }
   };
 
+  const handleAddPackage = async (newPkg) => {
+    try {
+      const updatedPackages = [...packages, newPkg];
+      await updateProfile({ packages: updatedPackages });
+      toast.success('Package added');
+    } catch {
+      toast.error('Failed to add package');
+    }
+  };
+
+  const handleRemovePackage = async (pkgId) => {
+    try {
+      const updatedPackages = packages.filter((p) => p._id !== pkgId);
+      await updateProfile({ packages: updatedPackages });
+      toast.success('Package removed');
+    } catch {
+      toast.error('Failed to remove package');
+    }
+  };
+
+  const handleUpdateMetrics = async (metricsData) => {
+    try {
+      await updateProfile(metricsData);
+      toast.success('Metrics updated');
+    } catch {
+      toast.error('Failed to update metrics');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
@@ -122,9 +158,28 @@ const MyProfilePage = () => {
           <div className="px-6 pb-6">
             <div className="-mt-10 flex items-end justify-between">
               <Avatar src={user?.avatar} name={user?.name} size="xl" showBadge={user?.verificationBadge} className="ring-4 ring-white" />
-              <Button variant="outline" size="sm" onClick={() => toast('Profile editing coming soon!')}>
-                <Pencil className="h-4 w-4" /> Edit Profile
-              </Button>
+              <div className="flex items-center gap-3">
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${profile?.isPublished ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {profile?.isPublished ? '🟢 Published' : '🔴 Draft Mode'}
+                </span>
+                <Button
+                  variant={profile?.isPublished ? 'outline' : 'primary'}
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await updateProfile({ isPublished: !profile?.isPublished });
+                      toast.success(profile?.isPublished ? 'Profile unpublished.' : 'Profile published! 🎉');
+                    } catch {
+                      toast.error('Failed to update status');
+                    }
+                  }}
+                >
+                  {profile?.isPublished ? 'Unpublish' : 'Publish'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => toast('Profile editing coming soon!')}>
+                  <Pencil className="h-4 w-4" /> Edit Profile
+                </Button>
+              </div>
             </div>
 
             <div className="mt-3">
@@ -260,17 +315,225 @@ const MyProfilePage = () => {
           )}
         </div>
 
-        {/* ── Analytics placeholder ──────────────────────────────────── */}
+        {/* ── Packages ───────────────────────────────────────────────── */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-          <h2 className="font-semibold text-gray-900 mb-2">Analytics</h2>
-          <p className="text-sm text-gray-400 italic">Analytics dashboard coming soon.</p>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Service Packages</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowPackageModal(true)}>
+              <Plus className="h-4 w-4" /> Add Package
+            </Button>
+          </div>
+
+          {packages.length === 0 ? (
+            <p className="text-sm text-gray-400">No service packages defined yet. Add packages to showcase your rates to brands.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {packages.map((pkg, idx) => (
+                <div key={pkg._id ?? idx} className="border border-indigo-100 bg-indigo-50/20 rounded-xl p-4 flex flex-col justify-between relative group">
+                  <button
+                    onClick={() => handleRemovePackage(pkg._id)}
+                    className="absolute top-2 right-2 p-1 bg-red-50 text-red-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100"
+                    aria-label="Delete Package"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">{pkg.name}</h3>
+                    <div className="space-y-1.5 mt-3 text-xs text-gray-600">
+                      <p>🎥 {pkg.reelsCount} Reels</p>
+                      <p>📈 {formatNumber(pkg.expectedViews)} Expected Views</p>
+                      <p>📅 {pkg.durationDays} Days Duration</p>
+                      <p>📊 {pkg.reportingFrequency} Report</p>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-100 pt-3 mt-4 flex items-baseline justify-between">
+                    <span className="text-xs text-gray-500 font-medium">Budget</span>
+                    <span className="font-extrabold text-indigo-700 text-base">₹{formatNumber(pkg.price)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Analytics & Metrics ────────────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-gray-900">Performance Metrics</h2>
+            <Button variant="ghost" size="sm" onClick={() => setShowMetricsModal(true)}>
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Monthly Views</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{formatNumber(monthlyViews)}</p>
+            </div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Monthly Uploads</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{monthlyUploads}</p>
+            </div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Reel Views</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{formatNumber(avgReelViews)}</p>
+            </div>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Engagement Rate</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{(profile?.averageEngagement ?? 0).toFixed(1)}%</p>
+            </div>
+          </div>
+
+          {audienceDetails && (
+            <div className="mt-4 border-t border-gray-100 pt-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-1.5">Audience & Demographics</h3>
+              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line bg-gray-50/50 p-3.5 border border-gray-100 rounded-xl">{audienceDetails}</p>
+            </div>
+          )}
         </div>
 
         {showPortfolioModal && (
           <AddPortfolioModal onClose={() => setShowPortfolioModal(false)} onAdd={handleAddPortfolio} />
         )}
+
+        {showPackageModal && (
+          <AddPackageModal onClose={() => setShowPackageModal(false)} onAdd={handleAddPackage} />
+        )}
+
+        {showMetricsModal && (
+          <EditMetricsModal
+            onClose={() => setShowMetricsModal(false)}
+            initialMetrics={{
+              monthlyViews,
+              monthlyUploads,
+              avgReelViews,
+              averageEngagement: profile?.averageEngagement ?? 0,
+              audienceDetails,
+            }}
+            onSave={handleUpdateMetrics}
+          />
+        )}
       </div>
     </DashboardLayout>
+  );
+};
+
+// ─── Modal components ─────────────────────────────────────────────────────────
+
+const AddPackageModal = ({ onClose, onAdd }) => {
+  const [name, setName] = useState('');
+  const [reelsCount, setReelsCount] = useState('');
+  const [expectedViews, setExpectedViews] = useState('');
+  const [durationDays, setDurationDays] = useState('');
+  const [reportingFrequency, setReportingFrequency] = useState('weekly');
+  const [price, setPrice] = useState('');
+
+  const handleSubmit = () => {
+    onAdd({
+      name,
+      reelsCount: Number(reelsCount) || 0,
+      expectedViews: Number(expectedViews) || 0,
+      durationDays: Number(durationDays) || 30,
+      reportingFrequency,
+      price: Number(price) || 0,
+    });
+    onClose();
+  };
+
+  return (
+    <Modal isOpen onClose={onClose} title="Add Service Package" size="sm">
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Package Name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Starter Reel Package" className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Number of Reels</label>
+            <input type="number" value={reelsCount} onChange={(e) => setReelsCount(e.target.value)} placeholder="3" className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Expected Views</label>
+            <input type="number" value={expectedViews} onChange={(e) => setExpectedViews(e.target.value)} placeholder="10000" className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Days)</label>
+            <input type="number" value={durationDays} onChange={(e) => setDurationDays(e.target.value)} placeholder="30" className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Report Frequency</label>
+            <select value={reportingFrequency} onChange={(e) => setReportingFrequency(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="weekly">Weekly Report</option>
+              <option value="monthly">Monthly Report</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
+          <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="10000" className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button variant="primary" className="flex-1" onClick={handleSubmit} disabled={!name || !price}>Add Package</Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const EditMetricsModal = ({ onClose, initialMetrics, onSave }) => {
+  const [monthlyViews, setMonthlyViews] = useState(initialMetrics.monthlyViews ?? 0);
+  const [monthlyUploads, setMonthlyUploads] = useState(initialMetrics.monthlyUploads ?? 0);
+  const [avgReelViews, setAvgReelViews] = useState(initialMetrics.avgReelViews ?? 0);
+  const [averageEngagement, setAverageEngagement] = useState(initialMetrics.averageEngagement ?? 0);
+  const [audienceDetails, setAudienceDetails] = useState(initialMetrics.audienceDetails ?? '');
+
+  const handleSubmit = () => {
+    onSave({
+      monthlyViews: Number(monthlyViews) || 0,
+      monthlyUploads: Number(monthlyUploads) || 0,
+      avgReelViews: Number(avgReelViews) || 0,
+      averageEngagement: Number(averageEngagement) || 0,
+      audienceDetails,
+    });
+    onClose();
+  };
+
+  return (
+    <Modal isOpen onClose={onClose} title="Edit Performance Metrics" size="sm">
+      <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Views</label>
+            <input type="number" value={monthlyViews} onChange={(e) => setMonthlyViews(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Uploads</label>
+            <input type="number" value={monthlyUploads} onChange={(e) => setMonthlyUploads(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Avg Reel Views</label>
+            <input type="number" value={avgReelViews} onChange={(e) => setAvgReelViews(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Engagement Rate (%)</label>
+            <input type="number" step="0.1" value={averageEngagement} onChange={(e) => setAverageEngagement(e.target.value)} className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Audience Demographics</label>
+          <textarea rows={3} value={audienceDetails} onChange={(e) => setAudienceDetails(e.target.value)} placeholder="e.g. 60% Female, 40% Male. Top cities: Mumbai, Delhi, Bangalore." className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div className="flex gap-2 pt-2">
+          <Button variant="primary" className="flex-1" onClick={handleSubmit}>Save Metrics</Button>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    </Modal>
   );
 };
 

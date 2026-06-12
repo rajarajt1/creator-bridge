@@ -25,7 +25,8 @@ const LoginPage = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(user.role === 'creator' ? '/dashboard' : '/dashboard', { replace: true });
+      const dashboard = user.role === 'creator' ? '/dashboard' : user.role === 'admin' ? '/admin-dashboard' : '/business-dashboard';
+      navigate(dashboard, { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 

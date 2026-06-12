@@ -90,7 +90,7 @@ export const searchCreators = async (req, res, next) => {
     const skip = (pageNum - 1) * limitNum;
 
     // ── match stage ────────────────────────────────────────────────────────
-    const matchProfile = {};
+    const matchProfile = { isPublished: true };
 
     if (niche) {
       matchProfile.niche = { $in: niche.split(',') };

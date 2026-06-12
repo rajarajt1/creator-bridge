@@ -10,6 +10,8 @@ import EmptyState from '../../components/ui/EmptyState.jsx';
 import { Skeleton } from '../../components/ui/Loader.jsx';
 import { Send } from 'lucide-react';
 import { formatRelativeTime, truncateText } from '../../utils/helpers.js';
+import ReportFormModal from '../../components/campaign/ReportFormModal.jsx';
+import ReportViewModal from '../../components/campaign/ReportViewModal.jsx';
 
 const STATUS_TABS = [
   { key: 'all',       label: 'All'       },
@@ -31,6 +33,9 @@ const MyApplicationsPage = () => {
   const { myApplications, fetchMyApplications, withdraw, isLoading } = useApplicationStore();
   const [activeTab, setActiveTab] = useState('all');
   const [withdrawingId, setWithdrawingId] = useState(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [showReportView, setShowReportView] = useState(false);
 
   useEffect(() => {
     fetchMyApplications();
@@ -158,6 +163,32 @@ const MyApplicationsPage = () => {
                       <Badge variant={STATUS_VARIANT[app.status] ?? 'default'} size="sm" className="capitalize">
                         {app.status}
                       </Badge>
+                      {app.status === 'accepted' && (
+                        <div className="flex gap-1.5">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="text-xs py-1 px-2.5"
+                            onClick={() => {
+                              setSelectedCampaignId(campaign._id ?? app.campaignId);
+                              setShowReportForm(true);
+                            }}
+                          >
+                            Submit Report
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs py-1 px-2.5"
+                            onClick={() => {
+                              setSelectedCampaignId(campaign._id ?? app.campaignId);
+                              setShowReportView(true);
+                            }}
+                          >
+                            View Reports
+                          </Button>
+                        </div>
+                      )}
                       {app.status === 'pending' && (
                         <Button
                           variant="ghost"
@@ -177,6 +208,28 @@ const MyApplicationsPage = () => {
           </div>
         )}
 
+        {showReportForm && selectedCampaignId && (
+          <ReportFormModal
+            isOpen={showReportForm}
+            onClose={() => {
+              setShowReportForm(false);
+              setSelectedCampaignId(null);
+            }}
+            campaignId={selectedCampaignId}
+            onSubmitSuccess={fetchMyApplications}
+          />
+        )}
+
+        {showReportView && selectedCampaignId && (
+          <ReportViewModal
+            isOpen={showReportView}
+            onClose={() => {
+              setShowReportView(false);
+              setSelectedCampaignId(null);
+            }}
+            campaignId={selectedCampaignId}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

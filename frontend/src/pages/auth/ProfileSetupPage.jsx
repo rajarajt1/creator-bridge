@@ -173,26 +173,45 @@ const CreatorStep2 = ({ onNext, onBack, onSkip }) => {
 const CreatorStep3 = ({ onNext, onBack, onSkip, isLoading }) => {
   const { register, handleSubmit } = useForm();
 
-  const submit = (data) => onNext(data);
+  const submit = (data) => {
+    onNext({
+      pricing: {
+        postRate: Number(data.postRate) || 0,
+        storyRate: Number(data.storyRate) || 0,
+        videoRate: Number(data.videoRate) || 0,
+      },
+      monthlyViews: Number(data.monthlyViews) || 0,
+      monthlyUploads: Number(data.monthlyUploads) || 0,
+      avgReelViews: Number(data.avgReelViews) || 0,
+      audienceDetails: data.audienceDetails || '',
+    });
+  };
 
   return (
-    <form onSubmit={handleSubmit(submit)} className="space-y-4">
-      <p className="text-sm text-gray-500">Set optional rates for brands to see your pricing upfront.</p>
+    <form onSubmit={handleSubmit(submit)} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+      <p className="text-sm text-gray-500">Set optional rates and performance metrics for brands to see.</p>
 
-      {[
-        { key: 'postRate',  label: 'Post / Feed Rate (₹)' },
-        { key: 'storyRate', label: 'Story Rate (₹)' },
-        { key: 'videoRate', label: 'Video / Reel Rate (₹)' },
-      ].map(({ key, label }) => (
-        <Input
-          key={key}
-          label={label}
-          type="number"
-          placeholder="e.g. 5000"
-          min="0"
-          {...register(key)}
+      <div className="grid grid-cols-3 gap-2">
+        <Input label="Feed Post (₹)" type="number" placeholder="5000" min="0" {...register('postRate')} />
+        <Input label="Story (₹)" type="number" placeholder="3000" min="0" {...register('storyRate')} />
+        <Input label="Video (₹)" type="number" placeholder="8000" min="0" {...register('videoRate')} />
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
+        <Input label="Monthly Views" type="number" placeholder="100000" min="0" {...register('monthlyViews')} />
+        <Input label="Monthly Uploads" type="number" placeholder="12" min="0" {...register('monthlyUploads')} />
+        <Input label="Avg Reel Views" type="number" placeholder="25000" min="0" {...register('avgReelViews')} />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Audience & Demographics</label>
+        <textarea
+          rows={2}
+          placeholder="e.g. 70% male, 30% female. Age 18-34 main segment."
+          className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          {...register('audienceDetails')}
         />
-      ))}
+      </div>
 
       <div className="flex gap-3 pt-2">
         <Button type="button" variant="outline" onClick={onBack}>
@@ -376,13 +395,13 @@ const ProfileSetupPage = () => {
     } catch {
       // non-blocking — proceed anyway
     } finally {
-      navigate('/dashboard', { replace: true });
+      navigate('/choose-plan', { replace: true });
     }
   };
 
   const handleSkip = () => {
     if (step < totalSteps) setStep((s) => s + 1);
-    else navigate('/dashboard', { replace: true });
+    else navigate('/choose-plan', { replace: true });
   };
 
   return (

@@ -19,6 +19,7 @@ const CampaignDetailPage = lazy(() => import('./pages/campaigns/CampaignDetailPa
 
 // ─── Auth pages ───────────────────────────────────────────────────────────────
 const ProfileSetupPage   = lazy(() => import('./pages/auth/ProfileSetupPage.jsx'));
+const ChoosePlanPage     = lazy(() => import('./pages/auth/ChoosePlanPage.jsx'));
 
 // ─── Creator-only ─────────────────────────────────────────────────────────────
 const CreatorDashboard   = lazy(() => import('./pages/dashboard/CreatorDashboard.jsx'));
@@ -33,6 +34,7 @@ const CampaignApplicationsPage  = lazy(() => import('./pages/applications/Campai
 
 // ─── Shared protected ─────────────────────────────────────────────────────────
 const MessagesPage = lazy(() => import('./pages/messages/MessagesPage.jsx'));
+const AdminDashboard = lazy(() => import('./pages/dashboard/AdminDashboard.jsx'));
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 
@@ -84,6 +86,11 @@ function App() {
             <ProfileSetupPage />
           </ProtectedRoute>
         } />
+        <Route path="/choose-plan" element={
+          <ProtectedRoute>
+            <ChoosePlanPage />
+          </ProtectedRoute>
+        } />
         <Route path="/messages" element={
           <ProtectedRoute>
             <MessagesPage />
@@ -131,6 +138,13 @@ function App() {
         <Route path="/campaigns/:id/applications" element={
           <ProtectedRoute allowedRoles={['business']}>
             <CampaignApplicationsPage />
+          </ProtectedRoute>
+        } />
+        
+        {/* ── Admin-only ────────────────────────────────────────────────── */}
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard />
           </ProtectedRoute>
         } />
 

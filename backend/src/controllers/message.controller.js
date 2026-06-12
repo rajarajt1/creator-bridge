@@ -163,7 +163,7 @@ export const getConversationList = catchAsync(async (req, res) => {
           pipeline: [{ $project: { name: 1, avatar: 1, isVerified: 1 } }],
         },
       },
-      { $unwind: { path: '$participant', preserveNullAndEmpty: true } },
+      { $unwind: { path: '$participant', preserveNullAndEmptyArrays: true } },
       {
         $project: {
           conversationId: '$_id',

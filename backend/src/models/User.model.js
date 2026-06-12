@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['creator', 'business'],
+      enum: ['creator', 'business', 'admin'],
       required: [true, 'Role is required'],
     },
     avatar: {
@@ -49,6 +49,11 @@ const userSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    subscriptionPlan: {
+      type: String,
+      enum: ['free', 'pro', 'elite', 'growth', 'enterprise'],
+      default: 'free',
     },
   },
   { timestamps: true }

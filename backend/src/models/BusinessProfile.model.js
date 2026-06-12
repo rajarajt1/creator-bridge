@@ -48,6 +48,10 @@ const businessProfileSchema = new mongoose.Schema(
       max: { type: Number, default: 0 },
       currency: { type: String, default: 'INR' },
     },
+    isPublished: {
+      type: Boolean,
+      default: false,
+    },
     completedCampaigns: {
       type: Number,
       default: 0,

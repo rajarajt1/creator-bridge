@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import useCreatorStore from '../../store/creatorStore.js';
 import {
   Megaphone, Users, CheckCircle, Eye,
   ArrowRight, Plus, MoreHorizontal,
@@ -55,9 +57,11 @@ const BusinessDashboard = () => {
   const user = useAuthStore((s) => s.user);
   const { myCampaigns, fetchMyCampaigns, isLoading: campLoading } = useCampaignStore();
   const { campaignApplications, fetchCampaignApplications, isLoading: appsLoading } = useApplicationStore();
+  const { profile, fetchMyProfile, updateProfile } = useCreatorStore();
 
   useEffect(() => {
     fetchMyCampaigns();
+    fetchMyProfile();
   }, []);
 
   // Pull recent applications for the first active campaign
@@ -92,7 +96,13 @@ const BusinessDashboard = () => {
           <div className="flex items-center gap-4">
             <Avatar src={user?.avatar} name={user?.name} size="lg" />
             <div>
-              <h1 className="text-xl font-bold">Welcome, {user?.name?.split(' ')[0]}! 👋</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold">Welcome, {user?.name?.split(' ')[0]}! 👋</h1>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/50 text-white uppercase tracking-wider">
+                  {user?.subscriptionPlan || 'free'}
+                </span>
+                <Link to="/choose-plan" className="text-xs text-amber-300 hover:underline">Upgrade</Link>
+              </div>
               <p className="text-indigo-200 text-sm mt-0.5">Manage your campaigns & find top creators</p>
             </div>
           </div>
@@ -103,6 +113,34 @@ const BusinessDashboard = () => {
             </Button>
           </Link>
         </div>
+        
+        {/* ── Publish Warning Banner ──────────────────────────────────── */}
+        {profile && !profile.isPublished && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex gap-3">
+              <span className="text-2xl mt-0.5">⚠️</span>
+              <div>
+                <h4 className="font-semibold text-amber-900 text-sm">Company profile is currently in Draft mode</h4>
+                <p className="text-xs text-amber-700 mt-0.5">Publish your company details to make your brand visible to creators and gain more organic interest.</p>
+              </div>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              className="shrink-0 bg-amber-600 hover:bg-amber-700 border-transparent text-white"
+              onClick={async () => {
+                try {
+                  await updateProfile({ isPublished: true });
+                  toast.success('Your business profile is now live! 🎉');
+                } catch {
+                  toast.error('Failed to publish profile');
+                }
+              }}
+            >
+              Publish Now
+            </Button>
+          </div>
+        )}
 
         {/* ── Stats ──────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

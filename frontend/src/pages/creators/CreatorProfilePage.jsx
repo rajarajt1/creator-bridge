@@ -9,7 +9,7 @@ import Badge from '../../components/ui/Badge.jsx';
 import Button from '../../components/ui/Button.jsx';
 import SocialMediaStats from '../../components/creator/SocialMediaStats.jsx';
 import { PageLoader } from '../../components/ui/Loader.jsx';
-import { formatCurrency } from '../../utils/helpers.js';
+import { formatCurrency, formatNumber } from '../../utils/helpers.js';
 
 const CreatorProfilePage = () => {
   const { id }    = useParams();
@@ -165,6 +165,73 @@ const CreatorProfilePage = () => {
                 </div>
               ) : null)}
             </div>
+          </div>
+        )}
+
+        {/* ── Packages ───────────────────────────────────────────────── */}
+        {profile.packages && profile.packages.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h2 className="font-semibold text-gray-900 mb-4">Service Packages</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {profile.packages.map((pkg, idx) => (
+                <div key={pkg._id ?? idx} className="border border-indigo-100 bg-indigo-50/20 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-gray-900 text-sm">{pkg.name}</h3>
+                    <div className="space-y-1.5 mt-3 text-xs text-gray-600">
+                      <p>🎥 {pkg.reelsCount} Reels</p>
+                      <p>📈 {formatNumber(pkg.expectedViews)} Expected Views</p>
+                      <p>📅 {pkg.durationDays} Days Duration</p>
+                      <p>📊 {pkg.reportingFrequency} Report</p>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-100 pt-3 mt-4 flex items-baseline justify-between">
+                    <span className="text-xs text-gray-500 font-medium">Budget</span>
+                    <span className="font-extrabold text-indigo-700 text-base">₹{formatNumber(pkg.price)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Performance Metrics ────────────────────────────────────── */}
+        {(profile.monthlyViews || profile.avgReelViews || profile.averageEngagement || profile.audienceDetails) && (
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h2 className="font-semibold text-gray-900 mb-4">Performance Metrics</h2>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {profile.monthlyViews > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Monthly Views</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{formatNumber(profile.monthlyViews)}</p>
+                </div>
+              )}
+              {profile.monthlyUploads > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Monthly Uploads</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{profile.monthlyUploads}</p>
+                </div>
+              )}
+              {profile.avgReelViews > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Reel Views</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{formatNumber(profile.avgReelViews)}</p>
+                </div>
+              )}
+              {profile.averageEngagement > 0 && (
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Engagement Rate</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{profile.averageEngagement.toFixed(1)}%</p>
+                </div>
+              )}
+            </div>
+
+            {profile.audienceDetails && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-1.5">Audience & Demographics</h3>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line bg-gray-50/50 p-3.5 border border-gray-100 rounded-xl">{profile.audienceDetails}</p>
+              </div>
+            )}
           </div>
         )}
 

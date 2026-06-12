@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import api from '../utils/axios.js';
+import useAuthStore from './authStore.js';
 
 const DEFAULT_PAGINATION = { page: 1, limit: 12, total: 0, pages: 0 };
 const DEFAULT_FILTERS = { niche: '', minFollowers: '', location: '', availability: '', platform: '' };
@@ -28,7 +29,9 @@ const useCreatorStore = create((set, get) => ({
   fetchMyProfile: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.get('/creators/profile');
+      const role = useAuthStore.getState().user?.role;
+      const endpoint = role === 'business' ? '/business/profile' : '/creators/profile';
+      const { data } = await api.get(endpoint);
       set({ profile: data.profile ?? data.creator ?? data });
     } catch (err) {
       set({ error: err.response?.data?.message ?? 'Failed to fetch profile' });
@@ -80,7 +83,9 @@ const useCreatorStore = create((set, get) => ({
   updateProfile: async (profileData) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await api.put('/creators/profile', profileData);
+      const role = useAuthStore.getState().user?.role;
+      const endpoint = role === 'business' ? '/business/profile' : '/creators/profile';
+      const { data } = await api.put(endpoint, profileData);
       const updated = data.profile ?? data.creator ?? data;
       set({ profile: updated });
       return updated;

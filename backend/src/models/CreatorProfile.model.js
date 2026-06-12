@@ -79,9 +79,39 @@ const creatorProfileSchema = new mongoose.Schema(
       videoRate: { type: Number, default: 0 },
       currency: { type: String, default: 'INR' },
     },
+    monthlyViews: {
+      type: Number,
+      default: 0,
+    },
+    monthlyUploads: {
+      type: Number,
+      default: 0,
+    },
+    avgReelViews: {
+      type: Number,
+      default: 0,
+    },
+    audienceDetails: {
+      type: String,
+      default: '',
+    },
+    packages: [
+      {
+        name: { type: String, required: true },
+        reelsCount: { type: Number, default: 0 },
+        expectedViews: { type: Number, default: 0 },
+        durationDays: { type: Number, default: 30 },
+        reportingFrequency: { type: String, enum: ['weekly', 'monthly'], default: 'weekly' },
+        price: { type: Number, default: 0 },
+      },
+    ],
     availability: {
       type: Boolean,
       default: true,
+    },
+    isPublished: {
+      type: Boolean,
+      default: false,
     },
     completedCollaborations: {
       type: Number,

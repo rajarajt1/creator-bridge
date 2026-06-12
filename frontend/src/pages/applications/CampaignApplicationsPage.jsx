@@ -10,6 +10,7 @@ import Badge from '../../components/ui/Badge.jsx';
 import EmptyState from '../../components/ui/EmptyState.jsx';
 import { Skeleton } from '../../components/ui/Loader.jsx';
 import { Users } from 'lucide-react';
+import ReportViewModal from '../../components/campaign/ReportViewModal.jsx';
 
 const STATUS_TABS = [
   { key: 'all',       label: 'All'       },
@@ -26,6 +27,8 @@ const CampaignApplicationsPage = () => {
   const { selectedCampaign, fetchCampaignById } = useCampaignStore();
 
   const [activeTab, setActiveTab] = useState('all');
+  const [showReportView, setShowReportView] = useState(false);
+  const [selectedCampaignId, setSelectedCampaignId] = useState(null);
 
   useEffect(() => {
     if (campaignId) {
@@ -119,9 +122,24 @@ const CampaignApplicationsPage = () => {
                 key={app._id}
                 application={app}
                 onUpdateStatus={handleUpdateStatus}
+                onViewReports={(campId) => {
+                  setSelectedCampaignId(campId);
+                  setShowReportView(true);
+                }}
               />
             ))}
           </div>
+        )}
+
+        {showReportView && selectedCampaignId && (
+          <ReportViewModal
+            isOpen={showReportView}
+            onClose={() => {
+              setShowReportView(false);
+              setSelectedCampaignId(null);
+            }}
+            campaignId={selectedCampaignId}
+          />
         )}
 
       </div>
